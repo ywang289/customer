@@ -110,7 +110,7 @@ def customer_modify_password():
             sql = "SELECT * FROM Customers where Email = '{}' AND Pwd = '{}'".format(email, oldpwd)
             result = db.session.execute(sql).fetchone()
         except Exception as err:
-            return {"message": "error! change password error"}
+            return {"message": "error! change password error","state":False}
 
         if result :
             stored_password= result[2]
@@ -119,16 +119,16 @@ def customer_modify_password():
                 sql = "UPDATE Customers SET Pwd = '{}' where Email = '{}'".format(newpwd, email)
                 db.session.execute(sql)
             except Exception as err:
-                return {"message": "error! change password error"}
+                return {"message": "error! change password error","state":False}
             try:
                 sql = 'select * from Customers'
                 result = db.session.execute(sql)
                 print(result.fetchall())
             except Exception as err:
-                return {"message": "error! change password error"}
-            msg = "password modified successfully"
+                return {"state":False,"message": "error! change password error"}
+            msg = {"message":"password modified successfully","state":True}
         else:
-            msg = "old password unmatch"
+            msg = {"state":False,"message":"old password unmatch"}
 
         return msg
 
@@ -140,7 +140,6 @@ def customer_modify_information():
         email = data['email']
         username = data['username']
         address = data['address']
-
         
         try: 
             sql = "UPDATE Customers SET Name = '{}', address = '{}'  where Email = '{}'".format(username, address, email)
@@ -151,11 +150,10 @@ def customer_modify_information():
         try:
             sql = 'select * from Customers'
             result = db.session.execute(sql)
-            print(result.fetchall())
         except Exception as err:
             return {"message": "error! change information error"}
         
-        msg = "information modified successfully"
+        msg = {"state":True,"message":"information modified successfully"}
 
         return msg
 
