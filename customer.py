@@ -145,13 +145,13 @@ def customer_modify_information():
             sql = "UPDATE Customers SET Name = '{}', address = '{}'  where Email = '{}'".format(username, address, email)
             db.session.execute(sql)
         except Exception as err:
-            return {"message": "error! change information error"}
+            return {"message": "error! change information error","state":False}
         
         try:
             sql = 'select * from Customers'
             result = db.session.execute(sql)
         except Exception as err:
-            return {"message": "error! change information error"}
+            return {"message": "error! change information error","state":False}
         
         msg = {"state":True,"message":"information modified successfully"}
 
