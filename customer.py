@@ -157,7 +157,7 @@ def customer_modify_information():
 
         return msg
 
-@app.route("/customer/history", methods=['GET', 'POST'])
+@app.route("/customer/history", methods=['POST'])
 def get_customer_history():
     rsp=""
     if request.method == 'POST':
@@ -170,6 +170,41 @@ def get_customer_history():
             json_list.append([x for x in row])       
 
     return json_list
+
+#{email: string, timestamp: time,( current time), order:dictionary{merchandise id: amount}}
+# { "email":"wg@gmail.com", "timestamp":"2022-12-11 17:30:00" }
+@app.route("/customer/place_order", methods=['POST'])
+def customer_place_order():
+    response={}
+    if request.method == 'POST':
+        data = json.loads(request.get_data())
+        email = data['email']
+        time= data['timestamp']
+        try: 
+            sql='SELECT Max(oid) FROM Orders'
+            max_oid = db.session.execute(sql).fetchone()
+        except Exception as err:
+            return {"message": "error! change information error","state":False}
+        oid=max_oid[0]+1
+        print(oid)
+        try:
+            sql="INSERT INTO Orders VALUES ('{}', '{}')".format(oid,time)
+            db.session.execute(sql)
+        except Exception as err:
+            print("order")
+            return {"message": "error! change information error","state":False}
+
+        try:
+            sql="INSERT INTO Places VALUES ('{}', '{}')".format(email, oid)
+            db.session.execute(sql)
+        except Exception as err:
+            print("places")
+            return {"message": "error! change information error","state":False}
+
+        response["message"]= True
+        response['state']= True
+
+    return response
 
 @app.route("/people/<email>", methods=["GET"])
 def get_customer_by_email(email):
