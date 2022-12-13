@@ -22,13 +22,39 @@ db=SQLAlchemy(app)
 #测试连上
 with app.app_context():
     sql = 'select * from Customers'
-    result = db.session.execute(sql)
-    print(result.fetchall())
+    result = db.session.execute(sql).fetchall()
+    
 
-
-@app.route('/', methods=['GET'])
+ 
+@app.route('/', methods=['GET'], defaults={"page":1})
 def home():
     return 'Hello World!'
+
+
+@app.route('/page_search/<page>', methods=['GET'])
+def page_search(page):
+    page=int(page)-1
+    pages=5
+    sql = 'select * from Customers'
+    result = db.session.execute(sql).fetchall()
+    max_page=round(len(result)/pages)+1
+    # print(max_page)
+    if page < max_page:
+        try:
+            sql = "select * from Customers LIMIT {} OFFSET {} ".format(pages, page*5)
+            result = db.session.execute(sql).fetchall()
+        except Exception as err:
+            return {"state": False, "message": "error! input error"}
+        json_list=[]
+        for row in result:
+            json_list.append([x for x in row])  
+        return json_list
+    else: 
+        return {"state": False, "message": "error! do not have data"}
+        
+    
+    
+
 
 
 #{"username":"ywang", "password":"0002", "email": "wg@gmail.com", "address": "400w"}
@@ -64,6 +90,38 @@ def register():
             
             response = {"state": True,"message": "register successfully"}
        
+    return response
+
+#{email: string, username:string}
+#{state: True/False message: string, explain whether login is successful or not,}
+
+@app.route('/customer/googlelogin', methods=['GET', 'POST'])
+def google_login():
+    
+    if request.method == 'POST':
+        data = json.loads(request.get_data())
+        username = data['username']
+        email = data['email']
+        
+        try:
+            sql = "SELECT * FROM Customers where email = '{}' ".format(email)
+            result = db.session.execute(sql).fetchone()
+        except Exception as err:
+            return {"state": False, "message": "error! input error"}
+        
+        if result :
+            print("successfully")
+            response= {"state": True, "message":"login successfully"}
+            
+        else:
+            try:
+                sql= "INSERT INTO Customers VALUES ('{}', '{}', null, null);".format(email,username)
+                db.session.execute(sql)
+            except Exception as err:
+                return {"state": False,"message": "error! input error"}
+
+            response= {"state": True, "message": "register and login successfully"}
+        
     return response
 
 
@@ -171,6 +229,9 @@ def get_customer_history():
 
     return json_list
 
+
+
+
 #{email: string, timestamp: time,( current time), order:dictionary{merchandise id: amount}}
 # { "email":"wg@gmail.com", "timestamp":"2022-12-11 17:30:00" }
 @app.route("/customer/place_order", methods=['POST'])
@@ -228,4 +289,5 @@ def get_customer_by_email(email):
     
 
 if __name__=='__main__':
+
     app.run(host='0.0.0.0', port=8080, debug=True)
