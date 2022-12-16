@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import json
 from datetime import datetime
+import math
 
 
 app=Flask(__name__)
@@ -36,8 +37,7 @@ def page_search(page):
     page=int(page)-1
     pages=5
     sql = 'select * from Customers'
-    result = db.session.execute(sql).fetchall()
-    max_page=round(len(result)/pages)+1
+    max_page=math.ceil(len(result)/pages)
     # print(max_page)
     if page < max_page:
         try:
