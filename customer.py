@@ -215,20 +215,33 @@ def customer_modify_information():
 
         return msg
 
-@app.route("/customer/history", methods=['POST'])
-def get_customer_history():
-    rsp=""
+
+
+# {"email": "wg@gmail.com"}
+@app.route("/customer/history/<page>", methods=['POST'])
+def get_customer_history(page):
+    page=int(page)-1
+    pages=5
     if request.method == 'POST':
         data = json.loads(request.get_data())
         email = data['email']
-        sql = "SELECT o.OID, o.Time, o.Status FROM Places p, Orders o WHERE p.Email = '{}' AND p.OID = o.OID".format(email)
+        sql = "SELECT o.OID, o.Time FROM Places p, Orders o WHERE p.Email = '{}' AND p.OID = o.OID".format(email)
         result = db.session.execute(sql).fetchall()
-        json_list=[]
-        for row in result:
-            json_list.append([x for x in row])       
-
-    return json_list
-
+        max_page=round(len(result)/pages)
+        print(max_page)
+        if page < max_page:
+            try:
+                sql = "SELECT o.OID, o.Time FROM Places p, Orders o WHERE p.Email = '{}' AND p.OID = o.OID LIMIT {} OFFSET {} ".format(email, pages, page*5)
+                result2 = db.session.execute(sql).fetchall()
+            except Exception as err:
+                return {"state": False, "message": "error! input error"}
+            json_list=[]
+            for row in result2:
+                json_list.append([x for x in row])  
+            return json_list
+        else: 
+            return {"state": False, "message": "error! do not have data"}
+        
 
 
 
@@ -264,6 +277,7 @@ def customer_place_order():
 
         response["message"]= True
         response['state']= True
+        response['oid']= oid
 
     return response
 
