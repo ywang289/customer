@@ -238,7 +238,7 @@ def get_customer_history(page):
             json_list=[]
             for row in result2:
                 json_list.append([x for x in row])  
-            return json_list
+            return {"max_page": max_page, "history": json_list}
         else: 
             return {"state": False, "message": "error! do not have data"}
         
