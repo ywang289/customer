@@ -5,6 +5,9 @@ import json
 from datetime import datetime
 import math
 
+from smartystreets_python_sdk import StaticCredentials, exceptions, ClientBuilder
+from smartystreets_python_sdk.us_street import Lookup
+
 
 app=Flask(__name__)
 CORS(app)
@@ -44,26 +47,37 @@ def check_login():
             return {"state": False, "message": "please register"}
         
 
+@app.before_request
+def run():
+    if request.path == '/customer/register':
+        auth_id = "c832f79c-cc29-3a15-c118-51733a6b5929"
+        auth_token = "CoGbY7DbR8qNdUPu3aZh"
+        data = json.loads(request.get_data())
+        address = data['address']
+        zipcode= data["zipcode"]
+       
 
-# @app.after_request
-# def check_login():
-#     if request.path == '/customer/login':
-#         data = json.loads(request.get_data())
-#         username = data['username']
-#         password = data['password']
-#         email = data['email']
-#         address = data['address']
+        credentials = StaticCredentials(auth_id, auth_token)
 
-#         json_list=[]
-     
-#         try:
-#             sql = "SELECT * FROM Customers where email = '{}' ".format(email)
-#             result = db.session.execute(sql).fetchone()
-#         except Exception as err:
-#             return {"state": False, "message": "error! input error"}
-#         for row in result:
-#                 json_list.append([x for x in row])  
-#         return json_list
+        client = ClientBuilder(credentials).build_us_street_api_client()
+       
+        lookup = Lookup()
+        
+        lookup.street = address
+        lookup.zipcode = zipcode
+        
+
+        try:
+            client.send_lookup(lookup)
+        except exceptions.SmartyException as err:
+            print(err)
+            return {"message": "input error", "state": False}
+
+        result = lookup.result
+
+        if not result:
+            print("No candidates. This means the address is not valid.")
+            return {"message": "invalid address", "state": False}
     
 
  
