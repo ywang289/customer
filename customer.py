@@ -20,6 +20,7 @@ app.config['SQLALCHEMY_DATABASE_URI']='mysql+pymysql://admin:zy112612@e6156-1.cu
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']=True
 db=SQLAlchemy(app)
 
+#{ "email": "wg@gmail.com","password": "0002"}
 @app.before_request
 def check_login():
     if request.path == '/customer/login':
@@ -66,32 +67,12 @@ def check_login():
     
 
  
-@app.route('/', methods=['GET'], defaults={"page":1})
+@app.route('/', methods=['GET'])
 def home():
     return 'Hello World!'
 
 
-@app.route('/page_search/<page>', methods=['GET'])
-def page_search(page):
-    page=int(page)-1
-    pages=5
-    sql = 'select * from Customers'
-    result = db.session.execute(sql).fetchall()
-    max_page=round(len(result)/pages)+1
-    # print(max_page)
-    if page < max_page:
-        try:
-            sql = "select * from Customers LIMIT {} OFFSET {} ".format(pages, page*5)
-            result = db.session.execute(sql).fetchall()
-        except Exception as err:
-            return {"state": False, "message": "error! input error"}
-        json_list=[]
-        for row in result:
-            json_list.append([x for x in row])  
-        return json_list
-    else: 
-        return {"state": False, "message": "error! do not have data"}
-        
+
     
     
 
@@ -135,7 +116,7 @@ def register():
 #{email: string, username:string}
 #{state: True/False message: string, explain whether login is successful or not,}
 
-@app.route('/customer/googlelogin', methods=['GET', 'POST'])
+@app.route('/customer/googleLogin', methods=['GET', 'POST'])
 def google_login():
     
     if request.method == 'POST':
