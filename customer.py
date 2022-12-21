@@ -4,6 +4,7 @@ from flask_cors import CORS
 import json
 from datetime import datetime
 import math
+import requests
 
 from smartystreets_python_sdk import StaticCredentials, exceptions, ClientBuilder
 from smartystreets_python_sdk.us_street import Lookup
@@ -79,7 +80,22 @@ def run():
             print("No candidates. This means the address is not valid.")
             return {"message": "invalid address", "state": False}
     
+@app.after_request
+def af3(response):
+    if request.path == '/customer/register':
+    # print(request.environ.get('SERVER_PROTOCOL'))
+    # print(len((response.data.decode('utf-8').split(":"))))
+    # print(json.loads(response.get_data())["state"])
+    # if response.data.decode('utf-8').split(":")[2][1] == 't':
+        if json.loads(response.get_data())["state"] :
+            data=json.loads(request.get_data())
+            print(data)
+            username = data['username']
+            email= data["email"]
+            # print(username)
+            sellers_check = requests.post("https://00xi30tpb2.execute-api.us-east-1.amazonaws.com/test/helloworld", data=json.dumps({"username":username,  "email": email}))
 
+    return response
  
 @app.route('/', methods=['GET'])
 def home():
